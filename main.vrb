@@ -1,0 +1,26 @@
+\frametitle{The rising noise floor}
+\begin{columns}[c]
+    \begin{column}{0.4\textwidth}
+      \begin{tikzpicture}
+        \node[box, draw=fzjgray50, fill=fzjgray!60, align=left, font=\scriptsize\ttfamily, text width=5.0cm] {%
+          {\color{fzjgray80}\# initial particles, every rank \hfill\normalfont\xmark}\\
+          {\color{fzjred}cp.random.seed(152)}\\[4pt]
+          {\color{fzjgray80}\# fix \hfill\normalfont\cmark}\\
+          {\color{fzjgreen!50!black}cp.random.seed(152 + 100*rank)}};
+      \end{tikzpicture}
+      \begin{itemize}\scriptsize
+        \item Every GPU draws its $N/W$ particles from the \hl{same seed}
+          $\to$ very similar particles on all ranks
+        \item Effectively only $\approx N/W$ independent particles
+          $\to$ noise floor \hl{grows with the GPU count}
+        \item One seed per rank $\to$ the noise floor no longer depends on $W$
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.58\textwidth}
+      \centering
+      \only<1>{\includegraphics[height=5.5cm]{seed_noise}\\[2pt]
+        {\tiny\color{fzjgray80} Illustration: numpy, uniform particles, fixed $N=2^{16}$, modes $k=1..8$, 20 trials}}%
+      \only<2>{\figorph{noise_floor_before_after}{8.6cm}{5.2cm}{Real run: before vs.\ after}
+        {your plot: \texttt{seed(152)} vs.\ \texttt{seed(152 + 100*rank)}}}
+    \end{column}
+  \end{columns}
