@@ -3,9 +3,9 @@
     \begin{column}{0.4\textwidth}
       \begin{tikzpicture}
         \node[box, draw=fzjgray50, fill=fzjgray!60, align=left, font=\scriptsize\ttfamily, text width=5.0cm] {%
-          {\color{fzjgray80}\# initial particles, every rank \hfill\normalfont\xmark}\\
+          {\color{fzjred}\# before: same seed on every rank}\\
           {\color{fzjred}cp.random.seed(152)}\\[4pt]
-          {\color{fzjgray80}\# fix \hfill\normalfont\cmark}\\
+          {\color{fzjgreen!50!black}\# fix: one seed per rank}\\
           {\color{fzjgreen!50!black}cp.random.seed(152 + 100*rank)}};
       \end{tikzpicture}
       \begin{itemize}\scriptsize
@@ -20,7 +20,7 @@
       \centering
       \only<1>{\includegraphics[height=5.5cm]{seed_noise}\\[2pt]
         {\tiny\color{fzjgray80} Illustration: numpy, uniform particles, fixed $N=2^{16}$, modes $k=1..8$, 20 trials}}%
-      \only<2>{\figorph{noise_floor_before_after}{8.6cm}{5.2cm}{Real run: before vs.\ after}
-        {your plot: \texttt{seed(152)} vs.\ \texttt{seed(152 + 100*rank)}}}
+      \iffig{noise_floor_before_after}{\only<2>{%
+        \includegraphics[width=8.6cm, height=5.2cm, keepaspectratio]{noise_floor_before_after}}}{}
     \end{column}
   \end{columns}

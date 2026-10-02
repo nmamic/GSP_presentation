@@ -8,9 +8,8 @@
 \usetheme{Juelich}
 
 \usepackage[T1]{fontenc}   % proper glyphs/hyphenation for accented names
-\usepackage{pifont}        % \ding check marks / crosses
 
-% --- theme settings ------------------------------------------
+% - theme settings --------------
 % title page: default "image" variant (picture on top, blue band below);
 % the picture comes from \titlegraphic further down.
 % Section pages use the same image variant, so they look like the title slide.
@@ -34,7 +33,7 @@
 
 \graphicspath{{figures/}}
 
-% --- TikZ styles ---------------------------------------------
+% - TikZ styles ---------------
 % colour code: fzjblue = simulation side, fzjorange = ML side, fzjred = problems/bugs only
 % grey shades: the theme defines these only under an option, values copied from it
 \providecolor{fzjgray80}{RGB}{81,81,81}
@@ -52,7 +51,7 @@
   brace/.style    = {decorate, decoration={brace, amplitude=4pt}, thick},
 }
 
-% --- helpers -------------------------------------------------
+% - helpers -----------------
 % figure placeholder: \figph{width}{height}{what}{how to make it}
 \newcommand{\figph}[4]{%
   \tikz\node[draw=fzjblue, dashed, thick, fill=fzjblue!5, rounded corners=3pt,
@@ -70,12 +69,12 @@
     \node[anchor=south west, font=\tiny, text=fzjgray80, inner sep=0pt]
       at ([xshift=0.45cm, yshift=0.75cm]current page.south west) {#1};
   \end{tikzpicture}}
-\newcommand{\todo}[1]{{\color{fzjred}\scriptsize\,[TODO: #1]}}
-\newcommand{\cmark}{{\color{fzjgreen!60!black}\ding{51}}}
-\newcommand{\xmark}{{\color{fzjred}\ding{55}}}
+% content that only appears once a real figure exists: \iffig{basename}{with}{without}
+\newcommand{\iffig}[3]{\IfFileExists{figures/#1.pdf}{#2}{\IfFileExists{figures/#1.png}{#2}{#3}}}
 \newcommand{\hl}[1]{{\color{fzjblue}\textbf{#1}}}
+\newsavebox{\diagbox}  % holds a diagram that is placed at one of two sizes
 
-% --- title data ----------------------------------------------
+% - title data ----------------
 \title{Towards a Foundational Model for Particle-Based Methods}
 \subtitle{Scaling neural operators for large-scale plasma simulations and coupling to production codes}
 \author{Nikola Mami\'c}
@@ -101,7 +100,7 @@
 \makesection
 % ============================================================
 
-% --- frame 1 --- GO20: slide 3 (PDF p.4), loop redrawn
+% - frame 1 - GO20: slide 3 (PDF p.4), loop redrawn
 \begin{frame}{Particle--field systems and the PIC loop}
   \begin{columns}[c]
     \begin{column}{0.42\textwidth}
@@ -130,10 +129,9 @@
       \end{tikzpicture}
     \end{column}
   \end{columns}
-  \src{Loop adapted from Muralikrishnan, Go20 2026}
 \end{frame}
 
-% --- frame 2 (old frames 2+3 merged) --- own illustration
+% - frame 2 - own illustration
 \begin{frame}{From grids to Fourier modes}
   \centering
   \vspace*{4pt}
@@ -141,9 +139,9 @@
   {\tiny\color{fzjgray80} Illustration with synthetic particles, both with 64 degrees of freedom}\par
   \vspace{8pt}
   \begin{columns}[T]
-    \begin{column}{0.55\textwidth}
+    \begin{column}{0.44\textwidth}
       \small\textbf{PIC: the grid causes trouble}\\[4pt]
-      \begin{tikzpicture}[mcap/.style={anchor=north, text width=2.3cm, align=center, font=\tiny}]
+      \begin{tikzpicture}[mcap/.style={anchor=north, text width=2.5cm, align=center, font=\tiny}]
         % aliasing: k=7/8 sampled on 8 points looks like k=-1/8
         \begin{scope}[x=0.28cm, y=0.32cm]
           \draw[fzjblue!60, thin, domain=0:8, samples=120] plot (\x, {sin(360*0.875*\x)});
@@ -152,72 +150,71 @@
           \node[mcap] at (4,-1.4) {\textbf{aliasing} $\to$ grid heating, energy drift};
         \end{scope}
         % Debye length vs cell size
-        \begin{scope}[shift={(3.0,0)}]
+        \begin{scope}[shift={(3.3,0)}]
           \draw[fzjgray50, step=0.32] (0,-0.32) grid (1.6,0.32);
           \draw[fzjred, thick] (0.8,0) circle (0.32);
           \node[mcap] at (0.8,-0.45) {cells must resolve the \textbf{Debye length}};
         \end{scope}
-        % noise ~ N_ppc^{-1/2}
-        \begin{scope}[shift={(5.4,-0.35)}]
-          \draw[->] (0,0) -- (1.8,0);
-          \draw[->] (0,0) -- (0,0.8);
-          \draw[fzjred, thick, domain=0.1:1.7, samples=50] plot (\x, {0.22/sqrt(\x)});
-          \node[mcap] at (0.9,-0.1) {\textbf{noise} $\propto N_\mathrm{ppc}^{-1/2}$ (particles per cell)};
-        \end{scope}
       \end{tikzpicture}
     \end{column}
-    \begin{column}{0.43\textwidth}
+    \begin{column}{0.54\textwidth}
       \small\textbf{PIF: particles talk to Fourier modes}
       \begin{itemize}\scriptsize
-        \item $\hat\rho_k = S_k \sum_j q_j\, e^{-i k\cdot x_j}$ --- no real-space grid
-        \item No aliasing, spectral accuracy
+        \item $\hat\rho_k = S_k \sum_j q_j\, e^{-i k\cdot x_j}$ - no real-space grid
+        \item No grid aliasing, spectral accuracy
         \item With NUFFTs: same cost order as PIC, higher constant
+        \item Limits: global operation; periodic / free-space boundaries
       \end{itemize}
     \end{column}
   \end{columns}
   \src{Mitchell et al., J.\ Comput.\ Phys.\ 396 (2019); Barnes \& Chac\'on, arXiv:1910.10833}
 \end{frame}
 
-% --- frame 4 --- GO20: slide 22 (PDF p.23); scaling: slide 18 (PDF p.19)
-\begin{frame}{Why surrogates?}
+% - frame 3 - GO20: slide 22 (PDF p.23); scaling: slide 18 (PDF p.19)
+\begin{frame}{Why learn the field operator?}
   \centering
-  \begin{tikzpicture}[tile/.style={sim, minimum width=3.6cm, minimum height=1.7cm}]
+  \begin{tikzpicture}[tile/.style={sim, minimum width=3.6cm, minimum height=1.35cm}]
     \node[tile] (a) at (0,0)   {{\Large $\sim 10^{11}$}\\[2pt] grid points / modes};
     \node[tile] (b) at (4.1,0) {{\Large $\sim 10^{12}$}\\[2pt] particles};
     \node[tile] (c) at (8.2,0) {{\Large $\sim 10^{5}$}\\[2pt] time steps};
     \node[font=\scriptsize, text=fzjgray80, below=2pt of b] {for one high-fidelity run (fusion, particle accelerators)};
   \end{tikzpicture}
-  \vspace{6pt}
+  \vspace{2pt}
   \begin{columns}[t]
-    \begin{column}{0.48\textwidth}
+    \begin{column}{0.4\textwidth}
       \begin{itemize}\small
         \item PIC and PIF \hl{do} scale well on today's supercomputers
-        \item The problem is \hl{cost}, not scaling
+        \item High-fidelity and many-query studies remain \hl{too expensive}
       \end{itemize}
     \end{column}
-    \begin{column}{0.48\textwidth}
-      \begin{itemize}\small
-        \item Many-query tasks (many runs per study) are out of reach even at exascale
-        \item[$\Rightarrow$] Need \hl{cheap surrogates} that keep the essential physics
+    \begin{column}{0.56\textwidth}
+      {\small\textbf{Hypotheses of the NEOPIC project}}
+      \begin{itemize}\scriptsize
+        \item Implicit / larger time steps via autograd Jacobians
+        \item Differentiable simulations
+        \item Field operators that are expensive or not known exactly
+        \item One model for many codes
       \end{itemize}
     \end{column}
   \end{columns}
+  \vspace{4pt}
+  \fcolorbox{fzjblue}{fzjblue!6}{\parbox{0.92\textwidth}{\scriptsize
+    By operation count, one inference step costs more than one PIF step: the model applies the
+    PIF-type transform $2L$ times per step for $d_v$ channels. Whether that pays off over a whole
+    simulation is open; \hl{scaling and coupling} are the prerequisites to find out.}}
   \src{Numbers: Muralikrishnan, Go20 2026}
 \end{frame}
 
-% --- frame 5 --- GO20: none
-\begin{frame}{Deep learning for PDEs so far}
+% - frame 4 - GO20: none
+\begin{frame}{Deep learning surrogates}
   \begin{columns}[c]
     \begin{column}{0.5\textwidth}
       \begin{itemize}\small
-        \item \hl{Foundation models}: pretrain once on many PDEs, fine-tune for new tasks
-        \item \textbf{Poseidon} (Herde et al., NeurIPS 2024): pretrained on compressible Euler and
-          incompressible Navier--Stokes data; vision-transformer-based; generalises to unseen PDEs
-        \item But:
-          \begin{itemize}\scriptsize
-            \item input = fields on \hl{regular grids} (images), not particles
-            \item not coupled to production simulation codes
-          \end{itemize}
+        \item \hl{Foundation models}: pretrain once, fine-tune for new tasks
+        \item \hl{Function to function}: not tied to one grid or resolution"
+        \item Precedent - \textbf{Poseidon} (Herde et al., NeurIPS 2024): pretrained on a \emph{small} set of
+          fluid PDEs (compressible Euler, incompressible Navier--Stokes), generalises to unseen PDEs
+        \item \hl{Differentiable} end to end: gradients for optimisation, inverse problems, implicit time stepping
       \end{itemize}
     \end{column}
     \begin{column}{0.48\textwidth}
@@ -247,54 +244,53 @@
   \src{Herde et al., Poseidon, NeurIPS 2024, arXiv:2405.19101}
 \end{frame}
 
-% --- frame 6 --- GO20: slide 23 (PDF p.24)
-\begin{frame}{Our approach: NEOPIC}
+% - frame 5 - GO20: slide 23 (PDF p.24)
+\begin{frame}{The project's approach}
   \begin{columns}[c]
     \begin{column}{0.44\textwidth}
       \centering
       \begin{tikzpicture}
         \node[ml, minimum width=4.0cm, minimum height=1.35cm] (no) at (0,1.3)
-          {\textbf{Neural operator}\\ $(x, v) \mapsto E$\\[-1pt]
+          {\textbf{Neural operator}\\ $x \mapsto E$\\[-1pt]
            {\scriptsize\color{fzjgray80} replaces scatter + solve + gather}};
         \node[sim, minimum width=4.0cm, minimum height=0.9cm] (pu) at (0,-1.3)
           {\textbf{Push} (classical)\\[-1pt]\scriptsize $\dot x=v,\ \dot v=\tfrac{q}{m}E$};
         \draw[arr] (no.east) to[out=-30, in=30] node[right, font=\scriptsize] {$E$} (pu.east);
-        \draw[arr] (pu.west) to[out=150, in=210] node[left, font=\scriptsize] {$x, v$} (no.west);
+        \draw[arr] (pu.west) to[out=150, in=210] node[left, font=\scriptsize] {$x$} (no.west);
         \node[simlight, minimum width=1.6cm] (in) at (0,2.65) {\scriptsize Init $x, v, q$};
         \draw[arr, fzjblue] (in) -- (no);
       \end{tikzpicture}
     \end{column}
     \begin{column}{0.54\textwidth}
       \begin{itemize}\small
-        \item Learn the whole map $P^{T} \mathcal{L}^{-1} P : (x,v) \mapsto E$
+        \item Learn the whole map $P^{T} \mathcal{L}^{-1} P : x \mapsto E$\\
+          {\scriptsize electrostatic: $E$ depends on the positions only}
         \item Particle push stays classical
-        \item Training data from mini-apps (PIF/PIC): Landau, two-stream, bump-on-tail, cyclotron;
-          600 steps, 500k particles each
+        \item Training data from mini-apps (PIF/PIC)
         \item Input: particle positions $\to$ output: $E$ at the particles
       \end{itemize}
     \end{column}
   \end{columns}
-  \src{After Muralikrishnan, Go20 2026}
 \end{frame}
 
-% --- frame 7 (added: split from frame 6) --- GO20: slide 24 (PDF p.25)
+% - frame 6 - GO20: slide 24 (PDF p.25)
 \begin{frame}{The model: nonuniform FNO}
   \centering
   \begin{tikzpicture}[node distance=0.9cm]
-    \node[simlight, minimum height=1cm] (x) {$x_p$\\[-1pt]\scriptsize $N\times d$};
+    \node[simlight, minimum height=1cm] (x) {$x_p$\\[-1pt]\scriptsize $d\times N$};
     \node[ml, right=of x, minimum height=1cm] (P) {lift $P$};
     \node[ml, right=of P, minimum height=1cm, minimum width=2.6cm] (B) {\textbf{Fourier block}\\[-1pt]\scriptsize $\times L$};
     \node[ml, right=of B, minimum height=1cm] (Q) {project $Q$};
-    \node[simlight, right=of Q, minimum height=1cm] (E) {$E(x_p)$\\[-1pt]\scriptsize $N\times d$};
-    \draw[arr] (x) -- (P); \draw[arr] (P) -- node[above, font=\tiny] {$N\!\times\! d_v$} (B);
+    \node[simlight, right=of Q, minimum height=1cm] (E) {$E(x_p)$\\[-1pt]\scriptsize $d\times N$};
+    \draw[arr] (x) -- (P); \draw[arr] (P) -- node[above, font=\tiny] {$d_v\!\times\! N$} (B);
     \draw[arr] (B) -- (Q); \draw[arr] (Q) -- (E);
 
     % zoom into one Fourier block
     \begin{scope}[shift={(-0.2,-3.0)}, node distance=0.55cm]
-      \node[box, draw=fzjgray50, minimum height=0.9cm] (v) at (0,0) {$v$\\[-1pt]\tiny $N\times d_v$};
-      \node[mllight, right=of v, minimum height=0.9cm] (F) {NUDFT\\[-1pt]\tiny $\hat v_k=\sum_p v_p e^{-ik\cdot x_p}$};
+      \node[box, draw=fzjgray50, minimum height=0.9cm] (v) at (0,0) {$v$\\[-1pt]\tiny $d_v\times N$};
+      \node[mllight, right=of v, minimum height=0.9cm] (F) {NUFFT / NUDFT\\[-1pt]\tiny $\hat v_k=\sum_p v_p e^{-ik\cdot x_p}$};
       \node[mllight, right=0.8cm of F, minimum height=0.9cm] (R) {$R_k\,\hat v_k$\\[-1pt]\tiny learned, $m$ modes};
-      \node[mllight, right=of R, minimum height=0.9cm] (Fi) {inverse NUDFT\\[-1pt]\tiny at the particles $x_p$};
+      \node[mllight, right=of R, minimum height=0.9cm] (Fi) {inverse NUFFT / NUDFT\\[-1pt]\tiny at the particles $x_p$};
       \node[circle, draw, right=of Fi, inner sep=1pt] (plus) {$+$};
       \node[box, right=0.4cm of plus] (sig) {$\sigma$};
       \node[mllight, below=0.35cm of R] (W) {$W v$ \tiny(pointwise)};
@@ -303,7 +299,7 @@
       \draw[arr] (v) |- (W); \draw[arr] (W) -| (plus);
       \draw[brace, fzjblue] ([yshift=3pt]F.north west) -- ([yshift=3pt]Fi.north east)
         node[midway, above=5pt, font=\scriptsize, text=fzjblue, fill=white, inner sep=1pt]
-        {$\approx$ a learnable PIF step: scatter $\to$ solve $\to$ gather, in latent space};
+        {a learnable PIF step in latent space};
       \node[draw=fzjgray50, dashed, rounded corners, fit=(v)(sig)(W)(F), inner sep=4pt,
         yshift=0.25cm, minimum height=2.6cm] (zoom) {};
     \end{scope}
@@ -313,52 +309,101 @@
     \end{scope}
   \end{tikzpicture}
 
-  \vspace{4pt}
-  {\small Positions enter through the \hl{Vandermonde matrix} $V_{kp}=e^{-ik\cdot x_p}$: no grid, any particle count}
-  \src{After Muralikrishnan, Go20 2026}
+\end{frame}
+
+% - frame 7 - what goes in, what comes out (grid moved here from "The project")
+\begin{frame}{What goes in, what comes out}
+  \centering
+  \begin{tikzpicture}[
+      cell/.style={draw=fzjgray50, fill=fzjgray, rounded corners=2pt, minimum size=0.8cm, inner sep=0pt},
+      cloud/.style={draw=fzjgray50, fill=fzjgray, rounded corners=2pt, minimum size=1.3cm, inner sep=0pt},
+      head/.style={font=\small\bfseries, text=fzjblue, anchor=north},
+      lbl/.style={font=\scriptsize, align=center, anchor=north},
+      ar/.style={{Stealth}-{Stealth}, fzjorange!90!black, very thick}]
+
+    % ---- (1) one sample: x -> model -> E -------------------------------------
+    \node[head] at (1.2,0.75) {One sample};
+    \node[cloud] (xin) at (1.2,-1.0) {};
+    \pgfmathsetseed{5}
+    \foreach \i in {1,...,30}
+      \fill[fzjblue] ($(xin)+(0.55*rand, 0.55*rand)$) circle (0.9pt);
+    \node[font=\scriptsize, anchor=west] at (xin.east) {$x$: $3\times N$};
+    \node[ml, minimum width=1.6cm, minimum height=0.6cm] (mod) at (1.2,-2.35) {\textbf{NUFNO}};
+    \node[cloud] (eout) at (1.2,-3.7) {};
+    \pgfmathsetseed{5}   % same particles as above
+    \foreach \i in {1,...,30} {
+      \pgfmathsetmacro{\px}{0.55*rand}
+      \pgfmathsetmacro{\py}{0.55*rand}
+      \fill[fzjblue] ($(eout)+(\px,\py)$) circle (0.9pt);
+      \draw[-{Stealth[length=1mm]}, fzjorange!90!black, semithick]
+        ($(eout)+(\px,\py)$) -- ++({0.15*sin(300*\px)}, 0);
+    }
+    \node[font=\scriptsize, anchor=west] at (eout.east) {$E$: $3\times N$};
+    \draw[arr] (xin) -- (mod);
+    \draw[arr] (mod) -- (eout);
+    \node[lbl] at (1.2,-4.45) {input: particle positions\\output: $E$ at each particle};
+
+    \draw[fzjgray50] (3.35,0.7) -- (3.35,-5.0);
+
+    % ---- (2) training: d_p rows x t_p columns, each cell one GPU --------------
+    \node[head] at (6.0,0.75) {Training};
+    \pgfmathsetseed{11}
+    \foreach \r/\col in {0/fzjblue, 1/fzjviolet} {
+      \foreach \c in {0,...,3} {
+        % shadows: each GPU holds a stack of b samples
+        \node[cell, fill=fzjgray!70] at ($(4.5+0.95*\c, -1.0-1.45*\r)+(0.1,0.1)$) {};
+        \node[cell, fill=fzjgray!85] at ($(4.5+0.95*\c, -1.0-1.45*\r)+(0.05,0.05)$) {};
+        \node[cell] (g\r\c) at (4.5+0.95*\c, -1.0-1.45*\r) {};
+        \foreach \i in {1,...,10}
+          \fill[\col] ($(g\r\c)+(0.3*rand, 0.3*rand)$) circle (0.8pt);
+      }
+      \draw[ar] ([yshift=-0.55cm]g\r0.center) -- ([yshift=-0.55cm]g\r3.center);
+      \node[font=\tiny, fill=white, inner sep=1pt, text=fzjorange!70!black]
+        at ($(g\r1)!0.5!(g\r2)+(0,-0.55)$) {all\_reduce: Fourier modes};
+    }
+    \draw[brace] ([yshift=5pt]g00.north west) -- ([yshift=5pt]g03.north east)
+      node[midway, above=3pt, font=\tiny] {$t_p$ particle shards};
+    \node[font=\tiny, anchor=east, align=right] at ($(g00.west)!0.5!(g10.west)+(-0.05,0)$) {$d_p$\\sample\\groups};
+    % gradient sync between the rows (data parallel), training only
+    \draw[ar, dashed] ([xshift=0.3cm]g03.east) -- ([xshift=0.3cm]g13.east)
+      node[midway, right=1pt, font=\tiny, align=left, text=fzjorange!70!black] {gradient\\all\_reduce\\(training\\only)};
+    \node[lbl] at (6.0,-3.55) {each cell = one GPU, holding\\$b$ samples $\times$ $n$ particles};
+    \node[lbl, font=\small] at (6.0,-4.4) {$W = d_p\, t_p$ \quad $b = B/d_p$ \quad $n = N/t_p$};
+
+    \draw[fzjgray50] (9.15,0.7) -- (9.15,-5.0);
+
+    % ---- (3) inference: one row ----------------------------------------------
+    \node[head] at (11.4,0.75) {Inference};
+    \pgfmathsetseed{11}
+    \foreach \c in {0,...,3} {
+      \node[cell] (h\c) at (10.0+0.95*\c, -1.0) {};
+      \foreach \i in {1,...,10}
+        \fill[fzjblue] ($(h\c)+(0.3*rand, 0.3*rand)$) circle (0.8pt);
+    }
+    \draw[ar] ([yshift=-0.55cm]h0.center) -- ([yshift=-0.55cm]h3.center);
+    \node[font=\tiny, fill=white, inner sep=1pt, text=fzjorange!70!black]
+      at ($(h1)!0.5!(h2)+(0,-0.55)$) {all\_reduce: Fourier modes};
+    \draw[brace] ([yshift=5pt]h0.north west) -- ([yshift=5pt]h3.north east)
+      node[midway, above=3pt, font=\tiny] {$t_p$ particle shards};
+    \node[lbl] at (11.4,-2.2) {$B = 1$: one configuration\\per time step};
+    \node[lbl, font=\small] at (11.4,-3.2) {$d_p = 1$, \quad $W = t_p$};
+  \end{tikzpicture}
 \end{frame}
 
 % ============================================================
-\section{The project}    % third 2: how we solve it, frames 7--12
+\section{The project and the contribution}    % third 2: how we solve it, frames 7--11
 \makesection
 % ============================================================
 
-% --- frame 7 (old frames 8+9 merged) --- GO20: none
-\begin{frame}{Where the project stood}
-  \begin{columns}[c]
-    \begin{column}{0.45\textwidth}
-      \begin{itemize}\small
-        \item[\cmark] NUFNO model
-        \item[\cmark] Distributed training: data parallel (DDP) $\times$ particle decomposition\\
-          {\scriptsize\color{fzjgray80} implemented by Chelsea John}
-        \item[\cmark] \texttt{picND}: evaluation against a PIF reference
-        \item[\cmark] Training data from the mini-apps
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.53\textwidth}
-      \centering
-      \begin{tikzpicture}[scale=0.8, every node/.append style={transform shape}]
-        \pgfmathsetseed{11}
-        \foreach \r/\col/\lab in {0/fzjblue/sample 1, 1/fzjviolet/sample 2} {
-          \foreach \c in {0,...,3} {
-            \node[draw=fzjgray50, fill=fzjgray, rounded corners=2pt, minimum size=1.05cm]
-              (g\r\c) at (1.35*\c, -1.5*\r) {};
-            \foreach \i in {1,...,14}
-              \fill[\col] ($(g\r\c)+(0.38*rand, 0.38*rand)$) circle (0.9pt);
-          }
-          \node[anchor=east, font=\scriptsize, text=\col] at ($(g\r0.west)+(-0.1,0)$) {\lab};
-          \draw[{Stealth}-{Stealth}, fzjorange!90!black, very thick]
-            ([yshift=-0.66cm]g\r0.center) -- ([yshift=-0.66cm]g\r3.center);
-        }
-        \node[font=\tiny, fill=white, inner sep=1pt, text=fzjorange!70!black] at ($(g01)!0.5!(g02)+(0,-0.66)$) {all\_reduce: Fourier modes};
-        \draw[brace] ([yshift=3pt]g00.north west) -- ([yshift=3pt]g03.north east)
-          node[midway, above=4pt, font=\scriptsize] {$t_p$: particles of one sample sharded};
-        \draw[brace] ([xshift=3pt]g03.north east) -- ([xshift=3pt]g13.south east)
-          node[midway, right=4pt, font=\scriptsize, align=left] {$d_p$: data\\parallel};
-        \node[font=\small] at ($(g11)!0.5!(g12)+(0,-1.05)$) {$W = d_p \cdot t_p$ GPUs};
-      \end{tikzpicture}
-    \end{column}
-  \end{columns}
+% - frame 7 - GO20: none
+\begin{frame}{The project}
+  \begin{itemize}\small
+    \item NUFNO model
+    \item Distributed training: data parallel ($d_p$) $\times$ particle decomposition ($t_p$)
+    \item {\scriptsize $t_p$ (\emph{tensor parallel} in the code) = particle decomposition}
+    \item \texttt{picND}: evaluation against a PIF reference
+    \item Training data from the mini-apps
+  \end{itemize}
 
   \vspace{6pt}
   \visible<2->{
@@ -369,14 +414,14 @@
       from one GPU holding all particles to many GPUs};
     \node[card] (b) at (4.6,0) {\textbf{\small Leaner I/O}\\[2pt]
       each rank reads only the particles it needs};
-    \node[card] (c) at (9.2,0) {\textbf{\small Into a production code}\\[2pt]
-      run the model inside a real simulation};
-    \node[anchor=south west, font=\small\bfseries, text=fzjblue] at ([yshift=2pt]a.north west) {Next steps --- my part:};
+    \node[card] (c) at (9.2,0) {\textbf{\small Into IPPL }\\[2pt]
+      run the model as a surrogate inside a simulation library};
+    \node[anchor=south west, font=\small\bfseries, text=fzjblue] at ([yshift=2pt]a.north west) {The contributions made:};
   \end{tikzpicture}
   }
 \end{frame}
 
-% --- frame 10 --- GO20: none
+% - frame 8 - GO20: none
 \begin{frame}{Training I/O: sharded HDF5 reads}
   \begin{columns}[T]
     \begin{column}{0.55\textwidth}
@@ -405,7 +450,8 @@
     \begin{column}{0.43\textwidth}
       \visible<3->{
       \centering
-      {\small\textbf{Why more GPUs did not help}}\\[4pt]
+      {\small\textbf{Why a larger $t_p$ did not lower peak memory}}\\
+      {\scriptsize ($W = 8$ GPUs fixed)}\\[4pt]
       \begin{tikzpicture}[x=1cm, y=1cm]
         % both shards drawn from the origin: same area b*n
         \fill[fzjblue, opacity=0.75] (0,0) rectangle (3.6,0.45);
@@ -421,9 +467,10 @@
   \end{columns}
 \end{frame}
 
-% --- frame 11 --- GO20: none
+% - frame 9 - GO20: none
 \begin{frame}{Parallel inference}
   \centering
+  \sbox{\diagbox}{%
   \begin{tikzpicture}[node distance=0.4cm, every node/.style={font=\scriptsize}]
     \foreach \r/\y in {0/0, 1/-1.05, 2/-2.1} {
       \node[simlight, minimum width=2.2cm, minimum height=0.75cm] (p\r) at (0,\y) {particles of rank \r};
@@ -441,56 +488,31 @@
     }
     \node[below=2pt of ar, align=center, text=fzjorange!60!black] {payload $O(d_v\, m)$\\ \textbf{independent of $N$}};
     \node[above=2pt of m0, text=fzjgray80] {$\hat v^{(r)}_k=\sum_{p\in r} v_p\, e^{-ik\cdot x_p}$};
-  \end{tikzpicture}
+  \end{tikzpicture}}%
+  % correctness plot (field energy vs time, several GPU counts) appears once the file exists
+  \iffig{inference_energy_gpus}{%
+    \begin{columns}[c]
+      \begin{column}{0.6\textwidth}\centering\resizebox{\linewidth}{!}{\usebox{\diagbox}}\end{column}
+      \begin{column}{0.38\textwidth}\centering
+        \includegraphics[width=\linewidth, height=4.2cm, keepaspectratio]{inference_energy_gpus}\\
+        {\scriptsize field energy vs.\ time, several GPU counts}
+      \end{column}
+    \end{columns}}{\usebox{\diagbox}}
 
   \vspace{6pt}
-  \begin{columns}[t]
-    \begin{column}{1\textwidth}
-      \begin{itemize}\small
-        \item Particle decomposition in \texttt{picND}: each GPU holds $N/W$ particles
-        \item Integrated quantities (e.g.\ field energy) also via all\_reduce
-      \end{itemize}
-    \end{column}
-
-  \end{columns}
+  \begin{itemize}\small
+    \item Particle decomposition in \texttt{picND}: each GPU holds $N/W$ particles;
+      in inference $W = t_p$ (no data parallelism)
+    \item Integrated quantities (e.g.\ field energy) also via all\_reduce
+  \end{itemize}
 \end{frame}
 
-% --- frame 10 (new) --- what IPPL is, before the coupling
-\begin{frame}{What is IPPL?}
-  \begin{columns}[c]
-    \begin{column}{0.55\textwidth}
-      \begin{itemize}\small
-        \item \textbf{I}ndependent \textbf{P}arallel \textbf{P}article \textbf{L}ayer:
-          C++ library for \hl{particle--mesh simulations} (e.g.\ PIC)
-        \item Performance portable: \hl{Kokkos} (CPU and GPU) + \hl{MPI}
-        \item Domain decomposition: each rank owns a subdomain and its particles
-        \item Mini-apps such as Landau damping; PIF schemes implemented too
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.43\textwidth}
-      \centering
-      \figorph{ippl_logo}{4.2cm}{1.6cm}{IPPL logo}{drop the file in figures/}\\[8pt]
-      \begin{tikzpicture}[layer/.style={sim, minimum width=5cm, minimum height=0.6cm, font=\scriptsize}]
-        \node[simlight, minimum width=5cm, minimum height=0.6cm, font=\scriptsize] (app) {mini-app, e.g.\ Landau damping};
-        \node[layer, below=2pt of app] (ip) {IPPL: particles, fields, solvers};
-        \node[layer, below=2pt of ip, minimum width=2.45cm, xshift=-1.275cm] {Kokkos};
-        \node[layer, below=2pt of ip, minimum width=2.45cm, xshift=1.275cm] {MPI};
-        \node[neutral, below=0.68cm of ip, minimum width=5cm, minimum height=0.5cm, font=\scriptsize] {CPU \;$\cdot$\; GPU};
-      \end{tikzpicture}
-    \end{column}
-  \end{columns}
-  \src{Muralikrishnan et al., arXiv:2205.11052; Mayani et al., PASC '26, arXiv:2605.05469}
-\end{frame}
-
-% --- frame 11 --- coupling; figure from the IPPL-interop deck (p.9), rank layout on <2>
+% - frame 10 - rank layout; correctness plot on <2> once the file exists
 \begin{frame}{Coupling to IPPL}
   \begin{columns}[c]
     \begin{column}{0.52\textwidth}
       \centering
-      \only<1>{\figorph{ippl_solver_vs_surrogate}{7.4cm}{4.6cm}{Solver or surrogate}
-        {IPPL-interop deck p.9: kick -- drift -- field evaluation -- kick;
-         the field evaluation is the numeric solver \emph{or} the neural operator}}%
-      \only<2>{
+      \only<1>{%
   \begin{tikzpicture}[scale=0.72, every node/.append style={transform shape}]
     \foreach \r in {0,1,2} {
       \node[sim, minimum width=2.6cm, minimum height=0.85cm] (ip\r) at (3.6*\r, 0) {\textbf{IPPL} (C++)\\[-1pt]\scriptsize Kokkos::View on GPU};
@@ -508,22 +530,35 @@
       node[right, font=\scriptsize, text=fzjblue] {MPI inside IPPL};
     \draw[fzjorange!90!black, thick, {Stealth}-{Stealth}] ($(rk1.south west)+(0,-0.35)$) -- ++(0.8,0)
       node[right, font=\scriptsize, text=fzjorange!60!black] {all\_reduce inside the model};
-  \end{tikzpicture}
-      }
+  \end{tikzpicture}}%
+      \only<1>{\\[10pt]%
+      \begin{tikzpicture}[layer/.style={sim, minimum width=5.2cm, minimum height=0.45cm, font=\tiny, inner sep=1pt}]
+        \node[simlight, minimum width=5.2cm, minimum height=0.45cm, font=\tiny, inner sep=1pt] (app) {mini-app, e.g.\ Landau damping};
+        \node[layer, below=1.5pt of app] (ip) {IPPL: particles, fields, solvers};
+        \node[layer, below=1.5pt of ip, minimum width=2.55cm, xshift=-1.325cm] {Kokkos};
+        \node[layer, below=1.5pt of ip, minimum width=2.55cm, xshift=1.325cm] {MPI};
+        \node[neutral, below=0.5cm of ip, minimum width=5.2cm, minimum height=0.4cm, font=\tiny, inner sep=1pt] {CPU \;$\cdot$\; GPU};
+      \end{tikzpicture}
+      }%
+      \iffig{ippl_model_vs_pif}{\only<2>{%
+        \includegraphics[width=\linewidth, height=5cm, keepaspectratio]{ippl_model_vs_pif}\\
+        {\scriptsize IPPL + model vs.\ IPPL's own PIF solver}}}{}
     \end{column}
     \begin{column}{0.46\textwidth}
       \begin{itemize}\small
-        \item Time step unchanged: only the \hl{field evaluation} is swapped for the surrogate
+        \item IPPL: C++ particle--mesh library, performance portable (Kokkos + MPI);
+          underlies the production accelerator code OPAL-X
+        \item Time step unchanged: only the \hl{field evaluation} is swapped for the model
         \item Opt-in, header-only (pybind11 + DLPack), \hl{no changes to IPPL}
-        \item Python model loaded by name at runtime
-        \item<2-> Same MPI rank hosts IPPL and the model: \hl{rank $i$ talks to rank $i$}
-        \item<2-> Data stays on the GPU; Python writes $E$ \hl{directly into IPPL's memory}
+        \item Same MPI rank hosts IPPL and the model: \hl{rank $i$ talks to rank $i$}
+        \item Data stays on the GPU; Python writes $E$ \hl{directly into IPPL's memory}
       \end{itemize}
     \end{column}
   \end{columns}
+  \src{Muralikrishnan et al., arXiv:2205.11052; Mayani et al., PASC '26, arXiv:2605.05469}
 \end{frame}
 
-% --- frame 12 --- REAL results only: figures from the IPPL-interop deck (p.13, p.14)
+% - frame 11 - REAL results only: figures from the IPPL-interop deck (p.13, p.14)
 \begin{frame}{Scaling results}
   \centering
   {\small NUFFT model, run \hl{through the IPPL interop layer}: 400 time steps, 1--512 GPUs, up to 1.6\,B particles}\\[6pt]
@@ -534,19 +569,19 @@
 \end{frame}
 
 % ============================================================
-\section{Deep dive}      % third 3: look at this crazy thing, frames 13--17
+\section{Deep dive}      % third 3: look at this crazy thing, frames 12--15
 \makesection
 % ============================================================
 
-% --- frame 14 (added: split from frame 13 of the plan) --- GO20: slides 16--17 (PDF p.17--18)
+% - frame 12 - GO20: slides 16--17 (PDF p.17--18)
 \begin{frame}{Two ways to split the particles}
   \centering
-  \includegraphics[width=0.6\textwidth]{decomposition_balance}\\[-2pt]
+  \includegraphics[width=0.54\textwidth]{decomposition_balance}\\[-2pt]
   {\tiny\color{fzjgray80} Illustration with synthetic particles (beam on a background), 4 ranks}
   \vspace{2pt}
   \begin{columns}[t]
     \begin{column}{0.48\textwidth}
-      \small\textbf{Particle decomposition} (our model, \texttt{picND})\\
+      \small\textbf{Particle decomposition} (The project's model, \texttt{picND})\\
       {\scriptsize each rank: random subset over the \hl{whole} domain; always balanced; Fourier modes duplicated}
     \end{column}
     \begin{column}{0.48\textwidth}
@@ -554,19 +589,20 @@
       {\scriptsize each rank: \hl{one subdomain}; balance needs re-partitioning $\to$ subdomain boundaries move}
     \end{column}
   \end{columns}
-  \src{Terminology: Muralikrishnan, Go20 2026}
+  \vspace{8pt}
+  {\scriptsize Under domain decomposition, clustered distributions also unbalance the \hl{model's} work per rank.}
 \end{frame}
 
-% --- frame 15 --- GO20: none (follows from frame 14)
+% - frame 13 - GO20: none (follows from frame 12)
 \begin{frame}[fragile]{The bug: local vs.\ global bounds}
   \begin{columns}[c]
     \begin{column}{0.4\textwidth}
       \begin{tikzpicture}
         \node[box, draw=fzjgray50, fill=fzjgray!60, align=left, font=\scriptsize\ttfamily, text width=5.0cm] {%
-          {\color{fzjgray80}\# valid() \hfill\normalfont\cmark}\\
+          {\color{fzjgray80}\# valid(): global bounds}\\
           lo = all\_reduce(x.min(), MIN)\\
           hi = all\_reduce(x.max(), MAX)\\[4pt]
-          {\color{fzjgray80}\# \_\_call\_\_() \hfill\normalfont\xmark}\\
+          {\color{fzjred}\# \_\_call\_\_(): local bounds}\\
           {\color{fzjred}lo, hi = x.min(), x.max()}};
       \end{tikzpicture}\\
       {\tiny\color{fzjgray80} schematic, not the actual code}
@@ -574,29 +610,31 @@
         \item Particle decomp.: local $\approx$ global bounds $\to$ \hl{harmless}, invisible in \texttt{picND}
         \item Domain decomp.: each rank stretches its subdomain to $[0,2\pi)$ $\to$ ranks sum modes in
           {\color{fzjred}incompatible coordinates}
-        \item Also: normalisation divides by max instead of (max $-$ min)
+        \item \textbf{Fix:} pass global bounds (one all\_reduce, or the known domain size)
       \end{itemize}
-      {\scriptsize\cmark\ fixed early on --- bounds are now all-reduced}
     \end{column}
     \begin{column}{0.58\textwidth}
       \centering
-      \only<1>{\includegraphics[width=\textwidth]{bug_rescale}}%
-      \only<2>{\includegraphics[width=\textwidth]{bug_reconstruct}\\[2pt]
+      \only<1>{\includegraphics[width=0.8\textwidth]{bug_rescale}}%
+      \only<2>{\includegraphics[width=0.8\textwidth]{bug_reconstruct}\\[2pt]
         {\scriptsize Density rebuilt from the all-reduced modes}}\\[2pt]
       {\tiny\color{fzjgray80} Illustration: synthetic 1D density $1+0.6\cos x$, 4 ranks, $|k|\le 4$}
+      \visible<2>{\\[4pt]\fcolorbox{fzjblue}{fzjblue!6}{\parbox{0.92\linewidth}{\centering\scriptsize
+        The Fourier sum does not care which rank holds which particle: with consistent coordinates
+        the model works under \hl{any} decomposition, including IPPL's.}}}
     \end{column}
   \end{columns}
 \end{frame}
 
-% --- frame 15 (new) --- the rising noise floor: same RNG seed on every inference rank
+% - frame 14 - the rising noise floor: same RNG seed on every inference rank
 \begin{frame}[fragile]{The rising noise floor}
   \begin{columns}[c]
     \begin{column}{0.4\textwidth}
       \begin{tikzpicture}
         \node[box, draw=fzjgray50, fill=fzjgray!60, align=left, font=\scriptsize\ttfamily, text width=5.0cm] {%
-          {\color{fzjgray80}\# initial particles, every rank \hfill\normalfont\xmark}\\
+          {\color{fzjred}\# before: same seed on every rank}\\
           {\color{fzjred}cp.random.seed(152)}\\[4pt]
-          {\color{fzjgray80}\# fix \hfill\normalfont\cmark}\\
+          {\color{fzjgreen!50!black}\# fix: one seed per rank}\\
           {\color{fzjgreen!50!black}cp.random.seed(152 + 100*rank)}};
       \end{tikzpicture}
       \begin{itemize}\scriptsize
@@ -611,22 +649,22 @@
       \centering
       \only<1>{\includegraphics[height=5.5cm]{seed_noise}\\[2pt]
         {\tiny\color{fzjgray80} Illustration: numpy, uniform particles, fixed $N=2^{16}$, modes $k=1..8$, 20 trials}}%
-      \only<2>{\figorph{noise_floor_before_after}{8.6cm}{5.2cm}{Real run: before vs.\ after}
-        {your plot: \texttt{seed(152)} vs.\ \texttt{seed(152 + 100*rank)}}}
+      \iffig{noise_floor_before_after}{\only<2>{%
+        \includegraphics[width=8.6cm, height=5.2cm, keepaspectratio]{noise_floor_before_after}}}{}
     \end{column}
   \end{columns}
 \end{frame}
 
-% --- frame 16 --- GO20: none
-\begin{frame}{Zero-copy: Kokkos View $\to$ PyTorch via DLPack}
+% - frame 15 -
+\begin{frame}{Zero-copy via DLPack}
   \centering
+  \only<1-3>{%
   \begin{tikzpicture}[node distance=0.4cm, every node/.style={font=\scriptsize}]
     % peel the types
     \node[simlight, font=\tiny] (t1) {\texttt{ParticleAttrib<Vector<double,3>>}};
     \node[simlight, font=\tiny, right=of t1] (t2) {\texttt{Kokkos::View<Vector<double,3>*>}};
     \node[simlight, font=\tiny, right=of t2] (t3) {shape $(N,3)$ of \texttt{double}};
     \draw[arr] (t1) -- (t2); \draw[arr] (t2) -- (t3);
-
     % memory strip
     \begin{scope}[shift={(0.2,-1.55)}]
       \foreach \i/\l in {0/x_0, 1/y_0, 2/z_0, 3/x_1, 4/y_1, 5/z_1, 6/x_2, 7/y_2, 8/z_2}
@@ -648,7 +686,6 @@
         otherwise: \hl{repack on the device} (still no host copy)};
     }
   \end{tikzpicture}
-
   \vspace{4pt}
   \visible<3->{
   \begin{columns}[t]
@@ -658,11 +695,9 @@
     \end{column}
   \end{columns}
   }
-  % return path: Python writes E directly into IPPL memory (IPPL-interop deck p.11)
-\end{frame}
-
-% --- frame 17 --- GO20: none
-\begin{frame}{Why DLPack matters beyond this project}
+  }%
+  \only<4>{%
+  {\small\textbf{Why it matters beyond this project}}\\[6pt]
   \begin{columns}[c]
     \begin{column}{0.6\textwidth}
       \centering
@@ -670,7 +705,7 @@
         \node[circle, fill=fzjgray80, text=white, minimum size=1.7cm, align=center] (hub)
           {\textbf{DLPack}\\C ABI};
         \node[sim, minimum width=2.3cm] (ippl) at (-3.2, 0.7) {IPPL};
-        \node[simlight, minimum width=2.3cm, dashed] (kok) at (-3.2,-0.7) {any Kokkos code};
+        \node[simlight, minimum width=2.3cm, dashed] (kok) at (-3.2,-0.7) {any Kokkos code\\[-1pt]\tiny(design property, not tested)};
         \draw[thick, fzjblue] (ippl) -- (hub);
         \draw[thick, fzjblue, dashed] (kok) -- (hub);
         \foreach \n/\y in {PyTorch/1.5, JAX/0.75, CuPy/0, NumPy/-0.75, mpi4py/-1.5} {
@@ -695,39 +730,45 @@
     \end{column}
   \end{columns}
   \src{dmlc.github.io/dlpack}
+  }
 \end{frame}
 
 % ============================================================
-\section{Status}         % the last 1%, frames 18--19
+\section{Status}         % the last 1%, frames 16--17
 \makesection
 % ============================================================
 
-% --- frame 18 --- GO20: none
+% - frame 16 -
 \begin{frame}{Status and outlook}
   \centering
   \begin{tikzpicture}[
-      head/.style={box, minimum width=3.4cm, font=\small\bfseries},
-      body/.style={box, minimum width=3.4cm, text width=3.1cm, minimum height=4.3cm, align=left, anchor=north,
-        font=\scriptsize, execute at begin node={\vbox to 3.9cm\bgroup}, execute at end node={\vfill\egroup}}]
-    \foreach \x/\t/\c in {0/Works/fzjgreen, 3.65/In progress/fzjyellow, 7.3/Blocked/fzjred, 10.95/Next/fzjlightblue}
+      head/.style={box, minimum width=4.6cm, font=\small\bfseries},
+      body/.style={box, minimum width=4.6cm, anchor=north, font=\scriptsize}]
+    \foreach \x/\t/\c in {0/Works/fzjgreen, 4.85/In progress/fzjyellow, 9.7/Next/fzjlightblue}
       \node[head, fill=\c] (h\x) at (\x,0) {\t};
     \node[body, fill=fzjgreen!15] at (0,-0.4) {%
+      \parbox[t][3.2cm][t]{4.3cm}{\raggedright
       \textbullet\ Sharded HDF5 reads in training\\[2pt]
       \textbullet\ Sharded inference in \texttt{picND}\\[2pt]
-      \textbullet\ One RNG seed per rank: noise floor fixed\\[2pt]
-      \textbullet\ Global bounds: bug fixed\\[2pt]
-      \textbullet\ IPPL $\leftrightarrow$ PyTorch interop layer (zero-copy, $E$ written in place)\\[2pt]
-      \textbullet\ Inference scaling through IPPL: up to 512 GPUs, 1.6\,B particles};
-    \node[body, fill=fzjyellow!20] at (3.65,-0.4) {%
-      \textbullet\ ADIOS2 / openPMD streaming (loose coupling)};
-    \node[body, fill=fzjred!12] at (7.3,-0.4) {%
-      \textbullet\ Large jobs on JUWELS Booster (software updates)};
-    \node[body, fill=fzjlightblue!25] at (10.95,-0.4) {%
-      \todo{your next steps}};
-  \end{tikzpicture}
+      \textbullet\ One RNG seed per rank\\[2pt]
+      \textbullet\ Global-bounds fix\\[2pt]
+      \textbullet\ IPPL $\leftrightarrow$ PyTorch coupling, end to end\\[2pt]
+      \textbullet\ Inference scaling through IPPL: up to 512 GPUs, 1.6\,B particles}};
+    \node[body, fill=fzjyellow!20] at (4.85,-0.4) {%
+      \parbox[t][3.2cm][t]{4.3cm}{\raggedright
+      \textbullet\ ADIOS2 / openPMD streaming}};
+    \node[body, fill=fzjlightblue!25] at (9.7,-0.4) {%
+      \parbox[t][3.2cm][t]{4.3cm}{\raggedright
+      \textbullet\ Per-step cost comparison vs.\ IPPL's PIF at scale\\[2pt]
+      \textbullet\ Mixed precision\\[2pt]
+      \textbullet\ Load balancing for clustered distributions\\[2pt]
+      \textbullet\ Testing the time-step hypothesis}};
+  \end{tikzpicture}\\[8pt]
+  \fcolorbox{fzjblue}{fzjblue!6}{\parbox{0.92\textwidth}{\centering\small
+    \textbf{Open question:} does the learned operator pay off over a full simulation compared to PIF?}}
 \end{frame}
 
-% --- frame 19 --- GO20: none
+% - frame 17 -
 \begin{frame}{Acknowledgements}
   \begin{columns}[c]
     \begin{column}{0.55\textwidth}
@@ -741,9 +782,8 @@
     \end{column}
     \begin{column}{0.42\textwidth}
       \centering
-      \figph{5.2cm}{2.2cm}{Logos}{Helmholtz AI, JSC (check logo usage rules)}\\[14pt]
-      {\Large\color{fzjblue}\textbf{Thank you!}}\\[2pt]
-      {\small Questions?}
+      {\huge\color{fzjblue}\textbf{Thank you!}}\\[8pt]
+      {\large Questions?}
     \end{column}
   \end{columns}
 \end{frame}
