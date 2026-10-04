@@ -1,4 +1,6 @@
 \beamer@sectionintoc {1}{INTRODUCTION}{2}{0}{1}
 \beamer@sectionintoc {2}{THE PROJECT AND THE CONTRIBUTION}{11}{0}{2}
-\beamer@sectionintoc {3}{FINER DETAILS}{27}{0}{3}
-\beamer@sectionintoc {4}{OUTLOOK}{34}{0}{4}
+\beamer@sectionintoc {3}{IMPROVING TRAINING I/O}{14}{0}{3}
+\beamer@sectionintoc {4}{PARALLELIZING INFERENCE}{18}{0}{4}
+\beamer@sectionintoc {5}{INTEROPERABILITY WITH SIMULATION CODES}{26}{0}{5}
+\beamer@sectionintoc {6}{OUTLOOK}{37}{0}{6}
