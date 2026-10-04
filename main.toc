@@ -1,4 +1,4 @@
-\beamer@sectionintoc {1}{Introduction}{2}{0}{1}
-\beamer@sectionintoc {2}{The project and the contribution}{10}{0}{2}
-\beamer@sectionintoc {3}{Deep dive}{19}{0}{3}
-\beamer@sectionintoc {4}{Status}{28}{0}{4}
+\beamer@sectionintoc {1}{INTRODUCTION}{2}{0}{1}
+\beamer@sectionintoc {2}{THE PROJECT AND THE CONTRIBUTION}{11}{0}{2}
+\beamer@sectionintoc {3}{FINER DETAILS}{27}{0}{3}
+\beamer@sectionintoc {4}{OUTLOOK}{34}{0}{4}

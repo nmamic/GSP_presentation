@@ -5,7 +5,7 @@
         \node[box, draw=fzjgray50, fill=fzjgray!60, align=left, font=\scriptsize\ttfamily, text width=5.0cm] {%
           {\color{fzjred}\# before: same seed on every rank}\\
           {\color{fzjred}cp.random.seed(152)}\\[4pt]
-          {\color{fzjgreen!50!black}\# fix: one seed per rank}\\
+          {\color{fzjgreen!50!black}\# fix: different seed per rank}\\
           {\color{fzjgreen!50!black}cp.random.seed(152 + 100*rank)}};
       \end{tikzpicture}
       \begin{itemize}\scriptsize
@@ -18,9 +18,14 @@
     \end{column}
     \begin{column}{0.58\textwidth}
       \centering
-      \only<1>{\includegraphics[height=5.5cm]{seed_noise}\\[2pt]
-        {\tiny\color{fzjgray80} Illustration: numpy, uniform particles, fixed $N=2^{16}$, modes $k=1..8$, 20 trials}}%
-      \iffig{noise_floor_before_after}{\only<2>{%
-        \includegraphics[width=8.6cm, height=5.2cm, keepaspectratio]{noise_floor_before_after}}}{}
+      %\only<1>{\includegraphics[trim=0 140 0 0, clip, width=0.8\textwidth]{seed_noise}\\[2pt]}
+      \adjustbox{trim=0 0 {.75\width} 0, clip, width=0.45\textwidth}{\includegraphics{figures/152326}}
+      \adjustbox{trim={.75\width} 0 0 0, clip, width=0.45\textwidth}{\includegraphics{figures/152326}}
+
+      {\scriptsize 1 GPU vs.\ 8 GPUs, \textcolor{fzjred}{before} (same seed)}\\[6pt]
+      \adjustbox{trim=0 0 {.6667\width} 0, clip, width=0.45\textwidth}{\includegraphics{figures/P_8_to_32_6pt8M_particles_float32_different_RNG}}
+      \adjustbox{trim={.6667\width} 0 0 0, clip, width=0.45\textwidth}{\includegraphics{figures/P_8_to_32_6pt8M_particles_float32_different_RNG}}
+
+      {\scriptsize 1 vs.\ 8 GPUs, \textcolor{fzjblue}{after} (seed + 100$\cdot$rank)}
     \end{column}
   \end{columns}
